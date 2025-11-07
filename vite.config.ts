@@ -2,162 +2,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { VitePWA } from 'vite-plugin-pwa';
-import MagicString from 'magic-string';
-import { init, parse } from 'es-module-lexer';
-
-const reactCdnModuleGlobals: Record<string, string> = {
-  'react': 'window.React',
-  'react/jsx-runtime': 'window.ReactJSXRuntime',
-  'react/jsx-dev-runtime': 'window.ReactJSXRuntime',
-  'react-dom': 'window.ReactDOM',
-  'react-dom/client': 'window.ReactDOM',
-};
-
-function buildReactCdnReplacement(importStatement: string, globalVar: string): string {
-  const trimmed = importStatement.trim();
-  // side-effect only import, nothing to replace
-  if (/^import\s+['"].*['"];?$/s.test(trimmed)) {
-    return '';
-  }
-  const match = trimmed.match(/^import\s*(.*?)\s*from\s*['"].*['"];?$/s);
-  if (!match) {
-    return '';
-  }
-  let clause = match[1]?.trim() ?? '';
-  if (!clause) {
-    return '';
-  }
-  const replacements: string[] = [];
-
-  // Namespace import: * as React
-  if (clause.startsWith('*')) {
-    const nsMatch = clause.match(/^\*\s+as\s+([A-Za-z0-9_$]+)/);
-    if (nsMatch) {
-      replacements.push(`const ${nsMatch[1]} = ${globalVar};`);
-    }
-    return replacements.join('\n');
-  }
-
-  // Default + named imports
-  let defaultImport = '';
-  let namedImports = '';
-  const hasBraces = clause.includes('{');
-
-  if (hasBraces) {
-    const beforeBrace = clause.slice(0, clause.indexOf('{')).trim();
-    const braceContent = clause.slice(clause.indexOf('{') + 1, clause.lastIndexOf('}')).trim();
-    if (beforeBrace) {
-      defaultImport = beforeBrace.replace(/,$/, '').trim();
-    }
-    if (braceContent) {
-      namedImports = braceContent;
-    }
-  } else {
-    defaultImport = clause.replace(/,$/, '').trim();
-  }
-
-  if (defaultImport && !/^type\b/.test(defaultImport)) {
-    replacements.push(`const ${defaultImport} = ${globalVar};`);
-  }
-
-  if (namedImports) {
-    const destructured = namedImports
-      .split(',')
-      .map((spec) => spec.trim())
-      .filter(Boolean)
-      .map((spec) => {
-        if (/^type\b/.test(spec)) {
-          return '';
-        }
-        if (spec.includes(' as ')) {
-          const [original, alias] = spec.split(' as ').map((part) => part.trim());
-          return `${original}: ${alias}`;
-        }
-        return spec;
-      })
-      .filter(Boolean)
-      .join(', ');
-
-    if (destructured) {
-      replacements.push(`const { ${destructured} } = ${globalVar};`);
-    }
-  }
-
-  return replacements.join('\n');
-}
-
-function reactCdnImportsPlugin() {
-  return {
-    name: 'react-cdn-imports',
-    enforce: 'post' as const,
-    resolveId(source: string) {
-      if (source in reactCdnModuleGlobals) {
-        return { id: source, external: true };
-      }
-      return null;
-    },
-    async transform(code: string, id: string) {
-      if (!code.includes('react')) {
-        return null;
-      }
-
-      if (id.endsWith('.json')) {
-        return null;
-      }
-
-      if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-        return null;
-      }
-
-      await init;
-      const [imports] = parse(code);
-      if (!imports.length) {
-        return null;
-      }
-
-      let magic: MagicString | null = null;
-      let mutated = false;
-
-      for (const imp of imports) {
-        if (imp.d !== -1) {
-          continue; // skip dynamic imports
-        }
-
-        const source = code.slice(imp.s, imp.e);
-        const globalVar = reactCdnModuleGlobals[source];
-        if (!globalVar) {
-          continue;
-        }
-
-        const statement = code.slice(imp.ss, imp.se);
-
-        if (/^import\s+type\b/.test(statement.trim())) {
-          magic = magic || new MagicString(code);
-          magic.remove(imp.ss, imp.se);
-          mutated = true;
-          continue;
-        }
-
-        const replacement = buildReactCdnReplacement(statement, globalVar);
-        magic = magic || new MagicString(code);
-        magic.remove(imp.ss, imp.se);
-        if (replacement) {
-          magic.appendLeft(imp.se, `${replacement}\n`);
-        }
-        mutated = true;
-      }
-
-      if (!mutated || !magic) {
-        return null;
-      }
-
-      return {
-        code: magic.toString(),
-        map: magic.generateMap({ hires: true })
-      };
-    }
-  };
-}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -167,7 +11,6 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    reactCdnImportsPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt'],
@@ -295,13 +138,9 @@ export default defineConfig(({ mode }) => ({
     exclude: [],
   },
   build: {
-    // SOLUTION CDN: React est chargé depuis le CDN dans index.html
-    // Le bundle contient toujours React, mais le CDN est chargé en premier
-    // Le navigateur utilisera le React du CDN (déjà chargé) au lieu de le recharger
     rollupOptions: {
       output: {
         // Manual chunks pour optimiser le code splitting
-        // React n'est plus dans les chunks car il vient du CDN
         manualChunks: (id) => {
           // Séparer les node_modules en chunks logiques
           if (id.includes('node_modules')) {
@@ -309,10 +148,7 @@ export default defineConfig(({ mode }) => ({
             if (id.includes('workbox') || id.includes('vite-plugin-pwa')) {
               return;
             }
-            
-            // SOLUTION CDN: React est externalisé et chargé depuis le CDN
-            // Plus besoin de gérer React dans les chunks
-            // (React est maintenant dans index.html via CDN)
+
             if (
               id.includes('react/') || 
               id.includes('react-dom/') || 
@@ -326,11 +162,9 @@ export default defineConfig(({ mode }) => ({
               id.includes('node_modules/react-dom') ||
               id.includes('react/jsx-dev-runtime')
             ) {
-              // React est externalisé, ne pas le mettre dans un chunk
-              // Il sera chargé depuis le CDN dans index.html
               return;
             }
-            
+
             // Supabase - indépendant (~100 KB)
             if (id.includes('@supabase')) {
               return 'vendor-supabase';
@@ -430,8 +264,6 @@ export default defineConfig(({ mode }) => ({
         },
       },
       
-        // Garantir l'ordre de chargement des chunks
-        // React doit être chargé avant tous les autres chunks
         preserveEntrySignatures: false,
     },
     
