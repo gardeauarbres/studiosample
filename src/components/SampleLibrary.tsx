@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense, memo } from "react";
+import { useState, useMemo, Suspense, memo } from "react";
 import { useDebounce } from "@/utils/useDebounce";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,10 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Grid, List, Play, Star, Clock, Filter, Trash2, Loader2 } from "lucide-react";
-
-// Lazy load virtualized list for code splitting
-const VirtualizedSampleGrid = lazy(() => import('./VirtualizedSampleGrid'));
+import { Search, Grid, List, Play, Star, Clock, Filter, Loader2 } from "lucide-react";
 
 interface AudioSample {
   id: string;
@@ -176,19 +173,43 @@ export const SampleLibrary = memo(({
                   <p className="text-sm mt-2">Try adjusting your search or filters</p>
                 </div>
               ) : (
-                <Suspense fallback={
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  </div>
-                }>
-                  <VirtualizedSampleGrid
-                    samples={filteredAndSortedSamples}
-                    onSamplePlay={onSamplePlay}
-                    onSampleToggleFavorite={onSampleToggleFavorite}
-                    onSampleDelete={onSampleDelete}
-                    viewMode={viewMode}
-                  />
-                </Suspense>
+                <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-3"}>
+                  {filteredAndSortedSamples.map((sample) => (
+                    <Card 
+                      key={sample.id}
+                      className="border-2 border-border hover:border-primary/50 transition-all cursor-pointer"
+                      onClick={() => onSamplePlay(sample)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-lg text-foreground truncate">
+                              {sample.name}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {Math.floor(sample.duration / 60)}:{(sample.duration % 60).toString().padStart(2, '0')}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            {sample.isFavorite && (
+                              <Star className="h-5 w-5 fill-primary text-primary" />
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onSamplePlay(sample);
+                              }}
+                            >
+                              <Play className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               )}
             </ScrollArea>
           </TabsContent>

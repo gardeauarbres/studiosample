@@ -14,7 +14,6 @@ import { UserStats } from './UserStats';
 import { SampleWheel } from './SampleWheel';
 import { SampleCard } from './SampleCard';
 // Lazy load components that are not immediately needed
-const VirtualizedSampleList = lazy(() => import('./VirtualizedSampleList'));
 const InfiniteSampleList = lazy(() => import('./InfiniteSampleList').then(module => ({ default: module.InfiniteSampleList })));
 const QRShareDialog = lazy(() => import('./QRShareDialog').then(module => ({ default: module.QRShareDialog })));
 const AudioImporter = lazy(() => import('./AudioImporter').then(module => ({ default: module.AudioImporter })));
@@ -1758,44 +1757,8 @@ export const AudioRecorder = () => {
                 Aucun sample enregistré. Commencez votre premier enregistrement !
               </p>
             </Card>
-          ) : samples.length >= 20 ? (
-            // Virtualized list for large collections (drag & drop disabled for performance)
-            <Suspense fallback={<LazyComponentFallback />}>
-              <VirtualizedSampleList
-              samples={samples}
-              playingId={playingId}
-              editingId={editingId}
-              editName={editName}
-              onPlay={(sample) => {
-                playSample(sample);
-                audioFeedback.playClick();
-              }}
-              onToggleFavorite={(id) => {
-                toggleFavorite(id);
-                audioFeedback.playSuccess();
-              }}
-              onShare={(sample) => shareSample(sample)}
-              onShareQR={(sample) => {
-                setSelectedSampleForQR(sample);
-                setQrDialogOpen(true);
-                audioFeedback.playClick();
-              }}
-              onDelete={(id) => {
-                deleteSample(id);
-                audioFeedback.playDelete();
-              }}
-              onStartEdit={(sample) => startEditing(sample)}
-              onSaveEdit={saveEdit}
-              onEditNameChange={setEditName}
-              onOpenEffects={(sample) => {
-                setSelectedSampleForEffects(sample);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              formatTime={formatTime}
-              />
-            </Suspense>
           ) : (
-            // Regular grid with drag & drop for smaller collections (guest mode)
+            // Regular grid with drag & drop for all collections (removed virtualization)
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
