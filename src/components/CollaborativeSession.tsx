@@ -60,7 +60,7 @@ export const CollaborativeSession = ({ currentSamples, onLoadSession }: Collabor
           error.message?.includes('404') || 
           error.message?.includes('does not exist') ||
           error.message?.includes('relation') ||
-          error.statusCode === 404
+          error.code === '42P01'
         ) {
           // Table n'existe pas - ignorer silencieusement sans afficher d'erreur
           console.warn('[CollaborativeSession] Table collaborative_sessions non disponible. Exécutez CREATE_COLLABORATIVE_SESSIONS.sql dans Supabase SQL Editor si vous souhaitez utiliser cette fonctionnalité.');
@@ -97,8 +97,7 @@ export const CollaborativeSession = ({ currentSamples, onLoadSession }: Collabor
         // Si la table n'existe pas, ignorer silencieusement
         if (
           error.code === '42P01' ||
-          error.message?.includes('does not exist') ||
-          error.statusCode === 404
+          error.message?.includes('does not exist')
         ) {
           console.warn('[CollaborativeSession] Table session_members not available');
           setMembers([]);
@@ -177,7 +176,7 @@ export const CollaborativeSession = ({ currentSamples, onLoadSession }: Collabor
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+    const { error } = await supabase
         .rpc('create_collaborative_session', {
           p_name: validationResult.data,
           p_samples: currentSamples,
@@ -190,8 +189,7 @@ export const CollaborativeSession = ({ currentSamples, onLoadSession }: Collabor
           error.code === '42883' || // Function does not exist
           error.code === '42P01' || // Table does not exist
           error.message?.includes('does not exist') ||
-          error.message?.includes('function') ||
-          error.statusCode === 404
+          error.message?.includes('function')
         ) {
           toast.error('Fonctionnalité de collaboration non disponible. Exécutez CREATE_COLLABORATIVE_SESSIONS.sql dans Supabase SQL Editor.');
           console.warn('[CollaborativeSession] Function or table not available:', error);
@@ -231,8 +229,7 @@ export const CollaborativeSession = ({ currentSamples, onLoadSession }: Collabor
         // Si la table n'existe pas, ignorer silencieusement
         if (
           error.code === '42P01' ||
-          error.message?.includes('does not exist') ||
-          error.statusCode === 404
+          error.message?.includes('does not exist')
         ) {
           console.warn('[CollaborativeSession] Table not available for save');
           return;
@@ -271,8 +268,7 @@ export const CollaborativeSession = ({ currentSamples, onLoadSession }: Collabor
         // Si la table n'existe pas, ignorer silencieusement
         if (
           error.code === '42P01' ||
-          error.message?.includes('does not exist') ||
-          error.statusCode === 404
+          error.message?.includes('does not exist')
         ) {
           console.warn('[CollaborativeSession] Table not available for delete');
           return;

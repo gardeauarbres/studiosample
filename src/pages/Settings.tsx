@@ -10,11 +10,9 @@ import {
   ArrowLeft, 
   User, 
   Bell, 
-  Palette, 
   Trash2, 
   Save,
   AlertTriangle,
-  Mail,
   Shield,
   Download
 } from 'lucide-react';

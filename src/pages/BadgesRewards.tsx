@@ -6,19 +6,8 @@ import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Trophy, Zap, Music, Award, Crown, Star, Target, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { useUserStats } from '@/hooks/useUserStats';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
-
-interface UserStats {
-  user_id: string;
-  total_samples: number;
-  total_effects: number;
-  favorites: number;
-  level: number;
-  xp: number;
-  username?: string;
-}
 
 const allBadges = [
   { id: 'first_sample', name: 'Premier Sample', icon: Music, requirement: 1, type: 'samples', description: 'Enregistrez votre premier sample', rarity: 'common' },
@@ -41,7 +30,6 @@ const rarityColors = {
 
 const BadgesRewards = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [userId, setUserId] = useState<string>();
 
   useEffect(() => {
@@ -58,18 +46,18 @@ const BadgesRewards = () => {
 
   const isUnlocked = (badge: typeof allBadges[0]) => {
     if (!currentUserStats) return false;
-    if (badge.type === 'samples') return currentUserStats.total_samples >= badge.requirement;
-    if (badge.type === 'effects') return currentUserStats.total_effects >= badge.requirement;
-    if (badge.type === 'level') return currentUserStats.level >= badge.requirement;
+    if (badge.type === 'samples') return (currentUserStats.total_samples ?? 0) >= badge.requirement;
+    if (badge.type === 'effects') return (currentUserStats.total_effects ?? 0) >= badge.requirement;
+    if (badge.type === 'level') return (currentUserStats.level ?? 0) >= badge.requirement;
     return false;
   };
 
   const getProgress = (badge: typeof allBadges[0]) => {
     if (!currentUserStats) return 0;
     let current = 0;
-    if (badge.type === 'samples') current = currentUserStats.total_samples;
-    if (badge.type === 'effects') current = currentUserStats.total_effects;
-    if (badge.type === 'level') current = currentUserStats.level;
+    if (badge.type === 'samples') current = currentUserStats.total_samples ?? 0;
+    if (badge.type === 'effects') current = currentUserStats.total_effects ?? 0;
+    if (badge.type === 'level') current = currentUserStats.level ?? 0;
     return Math.min((current / badge.requirement) * 100, 100);
   };
 

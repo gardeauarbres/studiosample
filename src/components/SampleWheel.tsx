@@ -13,7 +13,7 @@ interface SampleWheelProps {
   userLevel: number;
 }
 
-export const SampleWheel = ({ onRandomEffect, userLevel }: SampleWheelProps) => {
+export const SampleWheel = ({ onRandomEffect }: SampleWheelProps) => {
   const [comingSoonOpen, setComingSoonOpen] = useState(false);
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const [selectedSampleId, setSelectedSampleId] = useState<string>('');

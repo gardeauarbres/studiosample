@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, lazy, Suspense, useMemo, useCallback } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ import { generateSampleName } from '@/utils/sampleNames';
 import { supabase } from '@/integrations/supabase/client';
 import { audioFeedback } from '@/utils/audioFeedback';
 import { compressAudio } from '@/utils/audioOptimization';
-import { uploadAudioToStorage, downloadAudioFromStorage, deleteAudioFromStorage, generateStoragePath } from '@/utils/storageUtils';
+import { uploadAudioToStorage, downloadAudioFromStorage, deleteAudioFromStorage } from '@/utils/storageUtils';
 
 // Lazy load heavy components for better initial bundle size
 const Sequencer = lazy(() => import('./Sequencer').then(module => ({ default: module.Sequencer })));
@@ -132,7 +132,7 @@ export const AudioRecorder = () => {
     }
   };
 
-  const base64ToBlob = (base64: string, type: string) => {
+  const _base64ToBlob = (base64: string, type: string) => {
     // Si le base64 contient déjà le préfixe data URL, l'extraire
     const base64Data = base64.includes(',') ? base64.split(',')[1] : base64;
     const byteCharacters = atob(base64Data);
@@ -265,7 +265,7 @@ export const AudioRecorder = () => {
         // Si c'est une erreur de colonne manquante, essayer sans storage_path
         if (samplesError.message?.includes('storage_path') || samplesError.message?.includes('does not exist')) {
           console.warn('Retrying without storage_path...');
-          const { data: retryData, error: retryError } = await supabase
+          const { error: retryError } = await supabase
             .from('samples')
             .select('id, user_id, name, duration, timestamp, created_at, is_favorite, effects, mime_type')
             .order('created_at', { ascending: false });
@@ -355,21 +355,24 @@ export const AudioRecorder = () => {
 
       if (!statsError && stats) {
         setUserStats({
-          totalSamples: stats.total_samples,
-          totalEffects: stats.total_effects,
-          favorites: stats.favorites,
-          level: stats.level,
-          xp: stats.xp,
+          totalSamples: stats.total_samples ?? 0,
+          totalEffects: stats.total_effects ?? 0,
+          favorites: stats.favorites ?? 0,
+          level: stats.level ?? 1,
+          xp: stats.xp ?? 0,
         });
-      } else if (!stats) {
-        await supabase.from('user_stats').insert({
+      } else if (!stats && userId) {
+        const { error: insertError } = await supabase.from('user_stats').insert([{
           user_id: userId,
           total_samples: 0,
           total_effects: 0,
           favorites: 0,
           level: 1,
           xp: 0,
-        });
+        }]);
+        if (insertError) {
+          console.error('Error inserting user stats:', insertError);
+        }
       }
 
       // Recalculate stats to ensure accuracy
@@ -487,9 +490,10 @@ export const AudioRecorder = () => {
         
         // Sauvegarder dans la DB
         // NOTE: storage_path sera généré automatiquement par le trigger à partir de user_id, id et mime_type
-        // On n'a pas besoin de le renseigner manuellement
+        // On n'a besoin de le renseigner manuellement
+        const blobData = storagePath ? '' : await blobToBase64(blobToSave); // Empty string if using Storage, fallback to base64 if Storage failed
+        
         const { error } = await supabase.from('samples').upsert({
-          id: sampleToSave.id,
           user_id: userId,
           name: sampleToSave.name,
           duration: sampleToSave.duration,
@@ -498,7 +502,7 @@ export const AudioRecorder = () => {
           effects: sampleToSave.effects || [],
           // storage_path sera généré automatiquement par le trigger
           // On ne le renseigne pas ici, le trigger le calculera à partir de user_id, id et mime_type
-          blob_data: storagePath ? null : await blobToBase64(blobToSave), // Fallback si Storage échoue
+          blob_data: blobData,
           mime_type: mimeType, // Requis pour que le trigger génère storage_path
         });
         
@@ -779,7 +783,7 @@ export const AudioRecorder = () => {
     }
   };
 
-  const downloadSample = (sample: AudioSample) => {
+  const _downloadSample = (sample: AudioSample) => {
     try {
       const url = URL.createObjectURL(sample.blob);
       const a = document.createElement('a');
@@ -822,7 +826,7 @@ export const AudioRecorder = () => {
     if (!userId) return;
 
     try {
-      const sample = samples.find(s => s.id === id);
+      const _sample = samples.find(s => s.id === id);
       
       // Récupérer le storage_path avant de supprimer (si la colonne existe)
       let storagePath: string | null = null;
@@ -1093,7 +1097,7 @@ export const AudioRecorder = () => {
   };
 
   const applyRandomEffect = async (sampleId: string) => {
-    const sample = samples.find(s => s.id === sampleId);
+      const sample = samples.find(s => s.id === sampleId);
     if (!sample) {
       toast.error('Sample introuvable');
       return;
@@ -1352,7 +1356,7 @@ export const AudioRecorder = () => {
     }
   };
 
-  const handleSampleShared = (sample: any) => {
+  const _handleSampleShared = (sample: any) => {
     const newSample: AudioSample = {
       id: `shared-${Date.now()}`,
       name: `[Partagé] ${sample.name}`,
@@ -1527,7 +1531,7 @@ export const AudioRecorder = () => {
                 <Suspense fallback={<LazyComponentFallback />}>
                   <PresetManager 
                     currentEffects={[]}
-                    onLoadPreset={(effects) => {
+                    onLoadPreset={(_effects) => {
                       toast.info('Preset loaded! Apply to your samples');
                     }}
                   />

@@ -52,17 +52,15 @@ export const uploadAudioToStorage = async (
       console.error('[Storage] Upload error:', {
         path: storagePath,
         error: error.message,
-        statusCode: error.statusCode,
-        errorCode: error.error,
       });
       
       // Messages d'erreur spécifiques
-      if (error.statusCode === 400 && error.message?.includes('Bucket not found')) {
+      if (error.message?.includes('Bucket not found')) {
         console.error('[Storage] ❌ BUCKET MANQUANT: Le bucket "samples" n\'existe pas dans Supabase Storage');
         console.error('[Storage] 🔧 SOLUTION: Exécutez QUICK_FIX_STORAGE.sql dans Supabase SQL Editor');
-      } else if (error.statusCode === 403) {
+      } else if (error.message?.includes('Access forbidden') || error.message?.includes('permission')) {
         console.error('[Storage] ❌ ACCÈS REFUSÉ: Vérifiez les RLS policies du bucket');
-      } else if (error.statusCode === 401) {
+      } else if (error.message?.includes('Unauthorized') || error.message?.includes('authentication')) {
         console.error('[Storage] ❌ NON AUTORISÉ: Vérifiez votre authentification');
       }
       
@@ -95,16 +93,14 @@ export const downloadAudioFromStorage = async (
       console.error('[Storage] Download error:', {
         path: storagePath,
         error: error.message,
-        statusCode: error.statusCode,
-        errorCode: error.error,
       });
       
       // Log spécifique selon le type d'erreur
-      if (error.statusCode === 404) {
+      if (error.message?.includes('not found') || error.message?.includes('404')) {
         console.error('[Storage] File not found:', storagePath);
-      } else if (error.statusCode === 403) {
+      } else if (error.message?.includes('forbidden') || error.message?.includes('permission')) {
         console.error('[Storage] Access forbidden - Check RLS policies');
-      } else if (error.statusCode === 401) {
+      } else if (error.message?.includes('Unauthorized') || error.message?.includes('authentication')) {
         console.error('[Storage] Unauthorized - Check authentication');
       }
       
@@ -158,7 +154,7 @@ export const deleteAudioFromStorage = async (
  * Note: Notre bucket est privé, donc cette fonction retourne null
  * Pour les buckets privés, utilisez downloadAudioFromStorage
  */
-export const getPublicUrl = (storagePath: string): string | null => {
+export const getPublicUrl = (_storagePath: string): string | null => {
   // Notre bucket est privé, donc on ne peut pas utiliser getPublicUrl
   // Utilisez downloadAudioFromStorage à la place
   return null;

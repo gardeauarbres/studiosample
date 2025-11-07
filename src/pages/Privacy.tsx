@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, Shield, Database, Cookie, Mail, Trash2, FileEdit } from 'lucide-react';
+import { ArrowLeft, Shield, Database, Cookie, Trash2, FileEdit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
 
