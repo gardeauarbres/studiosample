@@ -34,7 +34,7 @@ export const useInfiniteSamples = (userId?: string) => {
     error,
   } = useInfiniteQuery({
     queryKey: ['samples', 'infinite', userId],
-    queryFn: async ({ pageParam = 0 }) => {
+    queryFn: async ({ pageParam }: { pageParam: number }) => {
       if (!userId) throw new Error('No user ID');
 
       // Essayer d'abord avec storage_path
@@ -123,7 +123,8 @@ export const useInfiniteSamples = (userId?: string) => {
         nextPage: validSamples.length === PAGE_SIZE ? pageParam + PAGE_SIZE : null,
       };
     },
-    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 0,
+    getNextPageParam: (lastPage: { samples: any[]; nextPage: number | null }) => lastPage.nextPage,
     enabled: !!userId,
     staleTime: 0, // Toujours considérer comme stale pour forcer le refetch après invalidation
     gcTime: 5 * 60 * 1000, // 5 minutes
@@ -131,7 +132,7 @@ export const useInfiniteSamples = (userId?: string) => {
   });
 
   // Flatten pages into single array
-  const samples = data?.pages.flatMap(page => page.samples) ?? [];
+  const samples = data?.pages.flatMap((page: { samples: any[] }) => page.samples) ?? [];
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
@@ -165,7 +166,7 @@ export const useInfiniteSamples = (userId?: string) => {
 
       return { previousData };
     },
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       queryClient.setQueryData(['samples', 'infinite', userId], context?.previousData);
       toast.error('Erreur lors de la mise à jour du favori');
     },
@@ -228,7 +229,7 @@ export const useInfiniteSamples = (userId?: string) => {
 
       return { previousData };
     },
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       queryClient.setQueryData(['samples', 'infinite', userId], context?.previousData);
       toast.error('Erreur lors de la suppression');
     },

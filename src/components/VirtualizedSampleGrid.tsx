@@ -1,8 +1,8 @@
 import { memo, useEffect, useState, useRef } from 'react';
-import { Grid } from 'react-window';
+import { FixedSizeGrid } from 'react-window';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Play, Star, Trash2 } from 'lucide-react';
+import { Star, Trash2 } from 'lucide-react';
 
 interface AudioSample {
   id: string;
@@ -200,9 +200,7 @@ const VirtualizedSampleGrid = memo(({
 
   return (
     <div ref={containerRef} className="w-full" style={{ height: '400px' }}>
-      <Grid
-        cellComponent={Cell}
-        cellProps={{}}
+      <FixedSizeGrid
         columnCount={columnCount}
         columnWidth={cellWidth}
         height={dimensions.height}
@@ -210,7 +208,9 @@ const VirtualizedSampleGrid = memo(({
         rowHeight={CELL_HEIGHT}
         width={dimensions.width}
         style={{ overflowX: 'hidden' }}
-      />
+      >
+        {Cell}
+      </FixedSizeGrid>
     </div>
   );
 });

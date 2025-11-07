@@ -58,7 +58,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 
-interface AudioSample {
+export interface AudioSample {
   id: string;
   name: string;
   blob: Blob;

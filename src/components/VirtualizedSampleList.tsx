@@ -1,5 +1,5 @@
 import { memo, useEffect, useState, useRef } from 'react';
-import { Grid } from 'react-window';
+import { FixedSizeGrid } from 'react-window';
 import { SampleCard } from './SampleCard';
 
 interface AudioSample {
@@ -142,9 +142,7 @@ const VirtualizedSampleList = memo(({
 
   return (
     <div ref={containerRef} className="w-full" style={{ height: '600px' }}>
-      <Grid
-        cellComponent={Cell}
-        cellProps={{}}
+      <FixedSizeGrid
         columnCount={columnCount}
         columnWidth={cellWidth}
         height={dimensions.height}
@@ -152,7 +150,9 @@ const VirtualizedSampleList = memo(({
         rowHeight={CELL_HEIGHT}
         width={dimensions.width}
         style={{ overflowX: 'hidden' }}
-      />
+      >
+        {Cell}
+      </FixedSizeGrid>
     </div>
   );
 });

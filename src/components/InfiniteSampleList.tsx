@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useInfiniteSamples } from '@/hooks/useInfiniteSamples';
 import { SampleCard } from './SampleCard';
-import { AudioSample } from './AudioRecorder';
+import type { AudioSample } from './AudioRecorder';
 
 interface InfiniteSampleListProps {
   userId: string;

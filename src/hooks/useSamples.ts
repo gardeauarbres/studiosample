@@ -138,7 +138,7 @@ export const useSamples = (userId?: string) => {
 
       return { previousSamples };
     },
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       // Rollback on error
       queryClient.setQueryData(['samples', userId], context?.previousSamples);
       toast.error('Erreur lors de la mise à jour du favori');
@@ -170,7 +170,7 @@ export const useSamples = (userId?: string) => {
 
       return { previousSamples };
     },
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       queryClient.setQueryData(['samples', userId], context?.previousSamples);
       toast.error('Erreur lors de la suppression');
     },
