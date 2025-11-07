@@ -81,6 +81,7 @@ export type Database = {
           mime_type: string | null
           name: string
           session_duration: number | null
+          storage_path: string | null
           timestamp: number
           updated_at: string | null
           user_id: string
@@ -97,6 +98,7 @@ export type Database = {
           mime_type?: string | null
           name: string
           session_duration?: number | null
+          storage_path?: string | null
           timestamp: number
           updated_at?: string | null
           user_id: string
@@ -113,6 +115,7 @@ export type Database = {
           mime_type?: string | null
           name?: string
           session_duration?: number | null
+          storage_path?: string | null
           timestamp?: number
           updated_at?: string | null
           user_id?: string
