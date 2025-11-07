@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 220 15% 8%;
+    --foreground: 0 0% 98%;
+
+    --card: 220 14% 12%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 220 14% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 14 100% 57%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 14 100% 70%;
+
+    --secondary: 220 12% 18%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 220 12% 18%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 142 76% 45%;
+    --accent-foreground: 0 0% 100%;
+    --accent-glow: 142 76% 60%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 12% 20%;
+    --input: 220 12% 18%;
+    --ring: 14 100% 57%;
+
+    --radius: 0.75rem;
+    
+    /* Gradients */
+    --gradient-studio: linear-gradient(135deg, hsl(220 15% 10%), hsl(220 15% 6%));
+    --gradient-primary: linear-gradient(135deg, hsl(14 100% 57%), hsl(14 100% 70%));
+    --gradient-accent: linear-gradient(135deg, hsl(142 76% 45%), hsl(142 76% 60%));
+    --gradient-glass: linear-gradient(135deg, hsl(220 14% 12% / 0.4), hsl(220 14% 12% / 0.2));
+    
+    /* Glows & Shadows */
+    --glow-record: 0 0 30px hsl(14 100% 57% / 0.4), 0 0 60px hsl(14 100% 57% / 0.2);
+    --glow-play: 0 0 30px hsl(142 76% 45% / 0.3), 0 0 60px hsl(142 76% 45% / 0.15);
+    --shadow-elegant: 0 10px 30px -10px hsl(220 15% 5% / 0.5);
+    --shadow-card: 0 4px 20px hsl(220 15% 5% / 0.4);
+    
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 220 15% 8%;
+    --foreground: 0 0% 98%;
+
+    --card: 220 14% 12%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 220 14% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 14 100% 57%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 12% 18%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 220 12% 18%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 142 76% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 12% 20%;
+    --input: 220 12% 18%;
+    --ring: 14 100% 57%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Utility Classes */
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105 active:scale-95 touch-manipulation;
+  }
+
+  .glass-effect {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid hsl(var(--border) / 0.3);
+  }
+
+  .glow-primary {
+    box-shadow: var(--glow-record);
+  }
+
+  .glow-accent {
+    box-shadow: var(--glow-play);
+  }
+
+  .smooth-transition {
+    transition: var(--transition-smooth);
+  }
+
+  .spring-transition {
+    transition: var(--transition-spring);
+  }
+
+  /* Mobile Touch Optimization */
+  @media (hover: none) and (pointer: coarse) {
+    button, a, [role="button"] {
+      @apply touch-manipulation;
+    }
+  }
+
+  /* Scroll Improvements */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.3) hsl(var(--background));
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.3);
+    border-radius: 4px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.5);
+  }
+}

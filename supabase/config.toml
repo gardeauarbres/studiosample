@@ -1,0 +1,16 @@
+project_id = "ttlureonwctkvkqfklxy"
+
+[functions.analyze-audio]
+verify_jwt = true
+
+[functions.analyze-audio-advanced]
+verify_jwt = true
+
+[functions.get-inspiration]
+verify_jwt = true
+
+[functions.creative-insights]
+verify_jwt = true
+
+[functions.gemini]
+verify_jwt = true
